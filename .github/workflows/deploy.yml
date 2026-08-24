@@ -29,10 +29,11 @@ jobs:
             # On récupère la dernière version du code depuis GitHub
             git pull origin main
             
+            python3.14 -m venv .venv
             source .venv/bin/activate
             
             pip install -r requirements.txt
             
-            python main.py
+            sudo systemctl restart gtos.service
             
             echo "Déploiement terminé avec succès !"
