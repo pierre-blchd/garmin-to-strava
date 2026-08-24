@@ -205,6 +205,8 @@ class StravaService:
             logger.error(err_msg)
             raise RuntimeError(err_msg)
 
+        return resp.json()
+
     def create_manual_activity(
         self,
         name: str,

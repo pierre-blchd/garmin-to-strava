@@ -1,21 +1,7 @@
-import os
-import tempfile
-import pytest
 from fastapi.testclient import TestClient
 from app import database
 from app.auth import create_session_token, SESSION_COOKIE_NAME
 from main import app
-
-
-@pytest.fixture(autouse=True)
-def setup_temp_db(monkeypatch):
-    temp_dir = tempfile.mkdtemp()
-    temp_db_path = os.path.join(temp_dir, "test.db")
-    monkeypatch.setattr(database, "DB_PATH", temp_db_path)
-    database.init_db()
-    yield
-    if os.path.exists(temp_db_path):
-        os.remove(temp_db_path)
 
 
 def test_auth_registration_and_login_flow():

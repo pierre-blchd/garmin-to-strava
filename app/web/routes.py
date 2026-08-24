@@ -117,18 +117,17 @@ async def auth_register(data: UserRegisterRequest, response: Response):
     """
     Registers a new user and signs them in via session cookie.
     """
-    existing = get_user_by_email(data.email)
-    if existing:
-        raise HTTPException(status_code=400, detail="Un compte avec cette adresse email existe déjà.")
-
     if len(data.password) < 6:
         raise HTTPException(status_code=400, detail="Le mot de passe doit comporter au moins 6 caractères.")
 
-    user = create_user(
-        email=data.email,
-        password=data.password,
-        display_name=data.display_name
-    )
+    try:
+        user = create_user(
+            email=data.email,
+            password=data.password,
+            display_name=data.display_name
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     session_token = create_session_token(user["id"])
     response.set_cookie(
@@ -137,7 +136,7 @@ async def auth_register(data: UserRegisterRequest, response: Response):
         max_age=SESSION_MAX_AGE_SECONDS,
         httponly=True,
         samesite="lax",
-        secure=False  # Set True if running with HTTPS behind proxy
+        secure=settings.COOKIE_SECURE
     )
 
     return {
@@ -169,7 +168,7 @@ async def auth_login(data: UserLoginRequest, response: Response):
         max_age=SESSION_MAX_AGE_SECONDS,
         httponly=True,
         samesite="lax",
-        secure=False
+        secure=settings.COOKIE_SECURE
     )
 
     return {

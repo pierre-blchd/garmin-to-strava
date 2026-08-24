@@ -1,43 +1,34 @@
-/* Custom CSS transitions, scrollbars and toast styling */
+/* Minimal design system: neutral palette, typography-led hierarchy, one accent color. */
 
-/* Custom subtle scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #090d16;
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #1e293b;
+    background: #d4d4d4;
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #334155;
+    background: #a3a3a3;
 }
 
-/* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.25s ease-out forwards;
+    animation: fadeIn 0.15s ease-out forwards;
 }
 
-/* Toast animation */
 @keyframes toastSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .toast {
-    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: toastSlideIn 0.15s ease-out forwards;
 }

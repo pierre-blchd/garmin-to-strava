@@ -27,6 +27,7 @@ wheels/
 .env
 data/
 garmin_tokens/
+sql/
 *.session.json
 *.db
 *.sqlite

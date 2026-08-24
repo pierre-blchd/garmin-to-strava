@@ -3,19 +3,19 @@ let activitiesData = [];
 let selectedActivityIds = new Set();
 let filterDebounceTimer = null;
 
-// Sport Icons Mapping
+// Sport Icons Mapping (icon only — color comes from typography, not backgrounds)
 const SPORT_ICONS = {
-    running: { icon: "activity", label: "Course à pied", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-    cycling: { icon: "bike", label: "Cyclisme", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-    road_biking: { icon: "bike", label: "Vélo de route", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-    gravel_cycling: { icon: "bike", label: "Gravel", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-    mountain_biking: { icon: "bike", label: "VTT", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-    hiking: { icon: "mountain", label: "Randonnée", color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
-    walking: { icon: "footprints", label: "Marche", color: "text-teal-400 bg-teal-500/10 border-teal-500/20" },
-    swimming: { icon: "waves", label: "Natation", color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20" },
-    fitness_equipment: { icon: "dumbbell", label: "Musculation", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
-    strength_training: { icon: "dumbbell", label: "Renforcement", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
-    other: { icon: "zap", label: "Autre sport", color: "text-slate-400 bg-slate-800 border-slate-700" }
+    running: { icon: "activity", label: "Course à pied" },
+    cycling: { icon: "bike", label: "Cyclisme" },
+    road_biking: { icon: "bike", label: "Vélo de route" },
+    gravel_cycling: { icon: "bike", label: "Gravel" },
+    mountain_biking: { icon: "bike", label: "VTT" },
+    hiking: { icon: "mountain", label: "Randonnée" },
+    walking: { icon: "footprints", label: "Marche" },
+    swimming: { icon: "waves", label: "Natation" },
+    fitness_equipment: { icon: "dumbbell", label: "Musculation" },
+    strength_training: { icon: "dumbbell", label: "Renforcement" },
+    other: { icon: "zap", label: "Autre sport" }
 };
 
 // --- Initialization ---
@@ -57,10 +57,12 @@ async function checkAppStatus() {
         const gAlert = document.getElementById("garmin-alert");
         if (gBadge) {
             if (data.garmin.connected) {
-                gBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-emerald-300">Garmin: Connecté (${data.garmin.email || 'OK'})</span>`;
+                gBadge.textContent = `Garmin · ${data.garmin.email || 'connecté'}`;
+                gBadge.className = "text-neutral-500";
                 if (gAlert) gAlert.classList.add("hidden");
             } else {
-                gBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400"></span><span class="text-rose-300">Garmin: Déconnecté</span>`;
+                gBadge.textContent = "Garmin · déconnecté";
+                gBadge.className = "text-neutral-400";
                 if (gAlert) gAlert.classList.remove("hidden");
             }
         }
@@ -70,10 +72,12 @@ async function checkAppStatus() {
         const sAlert = document.getElementById("strava-alert");
         if (sBadge) {
             if (data.strava.connected) {
-                sBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-emerald-300">Strava: ${data.strava.athlete_name || 'Connecté'}</span>`;
+                sBadge.textContent = `Strava · ${data.strava.athlete_name || 'connecté'}`;
+                sBadge.className = "text-neutral-500";
                 if (sAlert) sAlert.classList.add("hidden");
             } else {
-                sBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-amber-300">Strava: Déconnecté</span>`;
+                sBadge.textContent = "Strava · déconnecté";
+                sBadge.className = "text-neutral-400";
                 if (sAlert) sAlert.classList.remove("hidden");
             }
         }
@@ -179,7 +183,7 @@ function renderActivitiesTable(activities) {
                     const pace100 = act.duration_seconds / (act.distance_meters / 100);
                     const pMin = Math.floor(pace100 / 60);
                     const pSec = Math.floor(pace100 % 60);
-                    paceDisplay = `<span class="text-[11px] text-cyan-400 font-mono block">${pMin}:${pSec.toString().padStart(2, "0")}/100m</span>`;
+                    paceDisplay = `<span class="text-[11px] text-neutral-400 font-mono block">${pMin}:${pSec.toString().padStart(2, "0")}/100m</span>`;
                 }
             } else {
                 distDisplay = `${(act.distance_meters / 1000).toFixed(2)} km`;
@@ -199,63 +203,61 @@ function renderActivitiesTable(activities) {
         if (act.status === "synced") {
             const stravaUrl = act.strava_activity_id ? `https://www.strava.com/activities/${act.strava_activity_id}` : "#";
             statusBadge = `
-                <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                <span class="inline-flex items-center gap-1.5 text-xs text-neutral-600">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span>Sur Strava</span>
-                </div>
+                </span>
             `;
             actionBtn = `
-                <div class="flex items-center justify-end space-x-2">
+                <div class="flex items-center justify-end gap-3">
                     ${act.strava_activity_id ? `
-                    <a href="${stravaUrl}" target="_blank" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-strava transition border border-slate-700/80" title="Voir sur Strava">
+                    <a href="${stravaUrl}" target="_blank" class="text-neutral-400 hover:text-neutral-900 transition" title="Voir sur Strava">
                         <i data-lucide="external-link" class="w-4 h-4"></i>
                     </a>` : ''}
-                    <button onclick="openPushModal('${act.garmin_activity_id}', '${escapeHtml(act.activity_name)}')" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition border border-slate-700/80" title="Re-pousser">
+                    <button onclick="openPushModal('${act.garmin_activity_id}', '${escapeHtml(act.activity_name)}')" class="text-neutral-400 hover:text-neutral-900 transition" title="Re-pousser">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                     </button>
                 </div>
             `;
         } else if (act.status === "uploading") {
             statusBadge = `
-                <div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-500/15 border border-sky-500/30 text-sky-400">
-                    <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
-                    <span>Envoi en cours...</span>
-                </div>
+                <span class="inline-flex items-center gap-1.5 text-xs text-neutral-600">
+                    <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
+                    <span>Envoi en cours…</span>
+                </span>
             `;
-            actionBtn = `<span class="text-xs text-slate-500">Traitement...</span>`;
+            actionBtn = `<span class="text-xs text-neutral-400">Traitement…</span>`;
         } else if (act.status === "error") {
             statusBadge = `
-                <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 border border-rose-500/30 text-rose-400" title="${escapeHtml(act.error_message || '')}">
-                    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                <span class="inline-flex items-center gap-1.5 text-xs text-rose-600" title="${escapeHtml(act.error_message || '')}">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                     <span>Erreur</span>
-                </div>
+                </span>
             `;
             actionBtn = `
-                <div class="flex items-center justify-end space-x-2">
-                    <button onclick="pushSingleActivity('${act.garmin_activity_id}', this)" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-strava hover:bg-strava-hover text-white text-xs font-semibold transition shadow-sm">
-                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        <span>Réessayer</span>
+                <div class="flex items-center justify-end gap-3">
+                    <button onclick="pushSingleActivity('${act.garmin_activity_id}', this)" class="text-xs font-medium text-strava hover:underline">
+                        Réessayer
                     </button>
-                    <button onclick="openPushModal('${act.garmin_activity_id}', '${escapeHtml(act.activity_name)}')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700/80">
-                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                    <button onclick="openPushModal('${act.garmin_activity_id}', '${escapeHtml(act.activity_name)}')" class="text-neutral-400 hover:text-neutral-900 transition" title="Options">
+                        <i data-lucide="sliders" class="w-4 h-4"></i>
                     </button>
                 </div>
             `;
         } else {
             // Not synced
             statusBadge = `
-                <div class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 border border-slate-700 text-slate-400">
-                    <i data-lucide="circle-dashed" class="w-3.5 h-3.5"></i>
+                <span class="inline-flex items-center gap-1.5 text-xs text-neutral-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-neutral-300"></span>
                     <span>Non envoyé</span>
-                </div>
+                </span>
             `;
             actionBtn = `
-                <div class="flex items-center justify-end space-x-2">
-                    <button onclick="pushSingleActivity('${act.garmin_activity_id}', this)" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-strava hover:bg-strava-hover text-white text-xs font-semibold transition shadow-sm active:scale-95">
-                        <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
-                        <span>Push Strava</span>
+                <div class="flex items-center justify-end gap-3">
+                    <button onclick="pushSingleActivity('${act.garmin_activity_id}', this)" class="text-xs font-medium text-strava hover:underline">
+                        Push Strava
                     </button>
-                    <button onclick="openPushModal('${act.garmin_activity_id}', '${escapeHtml(act.activity_name)}')" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition border border-slate-700/80" title="Options / Modifier distance">
+                    <button onclick="openPushModal('${act.garmin_activity_id}', '${escapeHtml(act.activity_name)}')" class="text-neutral-400 hover:text-neutral-900 transition" title="Options / Modifier distance">
                         <i data-lucide="sliders" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -263,36 +265,34 @@ function renderActivitiesTable(activities) {
         }
 
         return `
-            <tr class="hover:bg-slate-800/40 transition group">
-                <td class="p-4">
-                    <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleSelectActivity('${act.garmin_activity_id}', this)" class="w-4 h-4 rounded border-slate-700 text-strava focus:ring-strava bg-slate-800 cursor-pointer">
+            <tr class="hover:bg-neutral-50 transition">
+                <td class="py-3 pl-5 pr-3">
+                    <input type="checkbox" ${isChecked ? "checked" : ""} onchange="toggleSelectActivity('${act.garmin_activity_id}', this)" class="w-3.5 h-3.5 rounded-sm border-neutral-300 text-neutral-900 focus:ring-0 cursor-pointer">
                 </td>
-                <td class="p-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2 rounded-xl border ${sportCfg.color}">
-                            <i data-lucide="${sportCfg.icon}" class="w-4 h-4"></i>
-                        </div>
+                <td class="py-3 pr-3">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="${sportCfg.icon}" class="w-4 h-4 text-neutral-400 flex-shrink-0"></i>
                         <div>
-                            <p class="text-xs font-semibold text-slate-200">${sportCfg.label}</p>
-                            <p class="text-[11px] text-slate-400">${dateFormatted}</p>
+                            <p class="text-sm text-neutral-900">${sportCfg.label}</p>
+                            <p class="text-[11px] text-neutral-400">${dateFormatted}</p>
                         </div>
                     </div>
                 </td>
-                <td class="p-4 font-medium text-slate-200 max-w-[200px] truncate" title="${escapeHtml(act.activity_name)}">
-                    ${escapeHtml(act.activity_name)}
-                    <span class="block text-[11px] font-mono text-slate-500">ID: ${act.garmin_activity_id}</span>
+                <td class="py-3 pr-3 max-w-[200px] truncate" title="${escapeHtml(act.activity_name)}">
+                    <span class="text-neutral-900">${escapeHtml(act.activity_name)}</span>
+                    <span class="block text-[11px] font-mono text-neutral-400">ID: ${act.garmin_activity_id}</span>
                 </td>
-                <td class="p-4">
-                    <div class="font-semibold text-slate-100">${distDisplay}</div>
+                <td class="py-3 pr-3">
+                    <div class="text-neutral-900 tabular-nums">${distDisplay}</div>
                     ${paceDisplay}
                 </td>
-                <td class="p-4 text-slate-300 font-mono text-xs">${durationFormatted}</td>
-                <td class="p-4 text-xs text-slate-400">
+                <td class="py-3 pr-3 text-neutral-600 font-mono text-xs">${durationFormatted}</td>
+                <td class="py-3 pr-3 text-xs text-neutral-500">
                     <div>${elev}</div>
                     <div>${hr}</div>
                 </td>
-                <td class="p-4">${statusBadge}</td>
-                <td class="p-4 text-right">${actionBtn}</td>
+                <td class="py-3 pr-3">${statusBadge}</td>
+                <td class="py-3 pr-5 text-right">${actionBtn}</td>
             </tr>
         `;
     }).join("");
@@ -305,8 +305,7 @@ function renderActivitiesTable(activities) {
 async function pushSingleActivity(activityId, btnEl) {
     if (btnEl) {
         btnEl.disabled = true;
-        btnEl.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Envoi...</span>`;
-        lucide.createIcons();
+        btnEl.textContent = "Envoi…";
     }
 
     try {
@@ -386,8 +385,7 @@ async function submitCustomPush(e) {
 
     const btn = document.getElementById("modal-submit-btn");
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Envoi en cours...</span>`;
-    lucide.createIcons();
+    btn.textContent = "Envoi en cours…";
 
     try {
         const resp = await fetch(`/api/push/${activityId}`, {
@@ -406,7 +404,7 @@ async function submitCustomPush(e) {
         const result = await resp.json();
         if (!resp.ok) throw new Error(result.detail || "Erreur de transmission");
 
-        showToast(result.message || "Activité poussée sur Strava avec succès !", "success");
+        showToast(result.message || "Activité poussée sur Strava", "success");
         closePushModal();
         checkAppStatus();
         loadActivities();
@@ -414,8 +412,7 @@ async function submitCustomPush(e) {
         showToast("Erreur : " + err.message, "error");
     } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i><span>Pousser sur Strava</span>`;
-        lucide.createIcons();
+        btn.textContent = "Pousser sur Strava";
     }
 }
 
@@ -485,8 +482,7 @@ async function pushSelectedActivities() {
     const ids = Array.from(selectedActivityIds);
     const batchBtn = document.getElementById("btn-batch-push");
     batchBtn.disabled = true;
-    batchBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Envoi de ${ids.length} activités...</span>`;
-    lucide.createIcons();
+    batchBtn.textContent = `Envoi de ${ids.length} activités…`;
 
     try {
         const resp = await fetch("/api/push-batch", {
@@ -498,7 +494,7 @@ async function pushSelectedActivities() {
 
         if (!resp.ok) throw new Error(result.detail || "Erreur de traitement par lot");
 
-        showToast(`${result.successful} / ${result.total} activités envoyées sur Strava !`, "success");
+        showToast(`${result.successful} / ${result.total} activités envoyées sur Strava`, "success");
         selectedActivityIds.clear();
         updateBatchUI();
         checkAppStatus();
@@ -507,8 +503,7 @@ async function pushSelectedActivities() {
         showToast("Erreur lors de l'envoi groupé: " + err.message, "error");
     } finally {
         batchBtn.disabled = false;
-        batchBtn.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i><span>Envoyer la sélection (<span id="selected-count">0</span>)</span>`;
-        lucide.createIcons();
+        batchBtn.innerHTML = `<span>Envoyer la sélection (<span id="selected-count">0</span>)</span>`;
     }
 }
 
@@ -531,8 +526,7 @@ async function submitGarminLogin(e) {
     const btn = document.getElementById("login-garmin-btn");
 
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Connexion...</span>`;
-    lucide.createIcons();
+    btn.textContent = "Connexion…";
 
     try {
         const resp = await fetch("/api/garmin/login", {
@@ -544,7 +538,7 @@ async function submitGarminLogin(e) {
 
         if (!resp.ok) throw new Error(result.detail || "Identifiants invalides");
 
-        showToast("Connexion à Garmin Connect réussie !", "success");
+        showToast("Connexion à Garmin Connect réussie", "success");
         closeGarminLoginModal();
         checkAppStatus();
         loadActivities();
@@ -552,7 +546,7 @@ async function submitGarminLogin(e) {
         showToast("Erreur Garmin: " + err.message, "error");
     } finally {
         btn.disabled = false;
-        btn.innerHTML = `<span>Se connecter</span>`;
+        btn.textContent = "Se connecter";
     }
 }
 
@@ -571,13 +565,13 @@ async function initSettingsPage() {
 
         if (data.garmin.connected) {
             gStatus.textContent = "Connecté";
-            gStatus.className = "px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400";
+            gStatus.className = "text-xs font-medium text-emerald-600";
             gForm.classList.add("hidden");
             gLoggedIn.classList.remove("hidden");
             gEmailDisplay.textContent = data.garmin.email || "Compte actif";
         } else {
             gStatus.textContent = "Non connecté";
-            gStatus.className = "px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-800 border border-slate-700 text-slate-400";
+            gStatus.className = "text-xs font-medium text-neutral-400";
             gForm.classList.remove("hidden");
             gLoggedIn.classList.add("hidden");
         }
@@ -591,14 +585,14 @@ async function initSettingsPage() {
 
         if (data.strava.connected) {
             sStatus.textContent = "Connecté";
-            sStatus.className = "px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400";
+            sStatus.className = "text-xs font-medium text-emerald-600";
             if (sConnectedView) sConnectedView.classList.remove("hidden");
             if (sDisconnectBtn) sDisconnectBtn.classList.remove("hidden");
             if (sOAuthBtn) sOAuthBtn.classList.add("hidden");
             if (sAthleteDisplay) sAthleteDisplay.textContent = `Athlète : ${data.strava.athlete_name || 'Inconnu'}`;
         } else {
             sStatus.textContent = "Non connecté";
-            sStatus.className = "px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-800 border border-slate-700 text-slate-400";
+            sStatus.className = "text-xs font-medium text-neutral-400";
             if (sConnectedView) sConnectedView.classList.add("hidden");
             if (sDisconnectBtn) sDisconnectBtn.classList.add("hidden");
             if (sOAuthBtn) sOAuthBtn.classList.remove("hidden");
@@ -617,8 +611,7 @@ async function handleGarminSettingsLogin(e) {
     const btn = document.getElementById("btn-save-garmin");
 
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Connexion...</span>`;
-    lucide.createIcons();
+    btn.textContent = "Connexion…";
 
     try {
         const resp = await fetch("/api/garmin/login", {
@@ -629,13 +622,13 @@ async function handleGarminSettingsLogin(e) {
         const res = await resp.json();
         if (!resp.ok) throw new Error(res.detail || "Erreur de connexion");
 
-        showToast("Connecté à Garmin Connect !", "success");
+        showToast("Connecté à Garmin Connect", "success");
         initSettingsPage();
     } catch (err) {
         showToast("Erreur: " + err.message, "error");
     } finally {
         btn.disabled = false;
-        btn.innerHTML = `<span>Se connecter à Garmin</span>`;
+        btn.textContent = "Se connecter à Garmin";
     }
 }
 
@@ -721,18 +714,14 @@ function showToast(message, type = "info") {
     if (!container) return;
 
     const toast = document.createElement("div");
-    toast.className = `toast p-4 rounded-xl shadow-xl flex items-center space-x-3 text-sm border backdrop-blur transition ${
-        type === "success" ? "bg-emerald-950/90 border-emerald-500/30 text-emerald-200" :
-        type === "error" ? "bg-rose-950/90 border-rose-500/30 text-rose-200" :
-        "bg-slate-900/90 border-slate-700 text-slate-200"
+    toast.className = `toast bg-white border rounded-md shadow-lg px-4 py-3 flex items-center gap-3 text-sm transition ${
+        type === "error" ? "border-rose-300 text-rose-700" : "border-neutral-200 text-neutral-800"
     }`;
 
-    const iconName = type === "success" ? "check-circle-2" : type === "error" ? "alert-circle" : "info";
     toast.innerHTML = `
-        <i data-lucide="${iconName}" class="w-5 h-5 flex-shrink-0"></i>
         <span class="flex-1">${escapeHtml(message)}</span>
-        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-200 ml-2">
-            <i data-lucide="x" class="w-4 h-4"></i>
+        <button onclick="this.parentElement.remove()" class="text-neutral-400 hover:text-neutral-900">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
         </button>
     `;
 
@@ -742,9 +731,9 @@ function showToast(message, type = "info") {
     setTimeout(() => {
         if (toast.parentElement) {
             toast.style.opacity = "0";
-            setTimeout(() => toast.remove(), 300);
+            setTimeout(() => toast.remove(), 200);
         }
-    }, 4500);
+    }, 4000);
 }
 
 // --- User Authentication Handlers ---

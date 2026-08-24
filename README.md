@@ -26,6 +26,7 @@ Prête pour un déploiement public ou en réseau local avec un **système de com
 ## 📋 Prérequis
 
 - **Python 3.10+**
+- **PostgreSQL 13+** (base de données de production)
 - Un compte **Garmin Connect**
 - Un compte **Strava** et une application API Strava gratuite (pour le serveur)
 
@@ -51,6 +52,76 @@ Prête pour un déploiement public ou en réseau local avec un **système de com
    ```bash
    pip install -r requirements.txt
    ```
+
+---
+
+## 🐘 Configuration PostgreSQL
+
+L'application utilise **PostgreSQL** comme base de données (via `psycopg2`, avec un pool de
+connexions). Elle ne stocke plus rien en SQLite.
+
+### 1. Créer un rôle applicatif dédié et sa base
+
+**Ne faites jamais tourner l'application avec le compte superutilisateur** (`postgres`/`root`).
+Le script [`sql/01_create_app_user_and_db.sql`](sql/01_create_app_user_and_db.sql) provisionne
+tout ce qu'il faut : un rôle dédié `garmin_strava_app` (ni superutilisateur, ni `CREATEDB`, ni
+`CREATEROLE`), sa base `garmin_strava` (dont il est propriétaire) et une base `garmin_strava_test`
+séparée pour la suite de tests — avec accès `CONNECT` révoqué à `PUBLIC` sur les deux.
+
+1. Ouvrez le fichier et remplacez `CHANGE_ME_STRONG_PASSWORD` par un secret fort
+   (ex. `openssl rand -base64 32`).
+2. Exécutez-le en tant qu'administrateur PostgreSQL :
+   ```bash
+   psql "host=<db-host> port=5432 user=postgres dbname=postgres" -f sql/01_create_app_user_and_db.sql
+   ```
+
+Le script est idempotent (rejouable sans erreur) et propriétaire de sa base, donc dispose de
+tous les droits nécessaires (`CREATE TABLE`, `SELECT`, `INSERT`, `UPDATE`, `DELETE`) uniquement
+sur celle-ci — pas d'accès aux autres bases de l'instance.
+
+Pour changer le mot de passe applicatif plus tard sans tout reprovisionner, utilisez
+[`sql/02_rotate_app_password.sql`](sql/02_rotate_app_password.sql) (pensez à mettre à jour
+`DATABASE_URL` dans `.env` et à redémarrer l'app après rotation).
+
+### 2. Renseigner la connexion dans `.env`
+
+Copiez `.env.example` en `.env` puis complétez soit `DATABASE_URL` (recommandé), soit les
+variables `PG*` individuelles :
+
+```env
+DATABASE_URL=postgresql://garmin_strava_app:un_mot_de_passe_fort@localhost:5432/garmin_strava
+DB_POOL_MIN_CONN=1
+DB_POOL_MAX_CONN=10
+```
+
+### 3. Initialisation du schéma
+
+Le schéma (tables `users`, `global_settings`, `user_settings`, `activities` + index) est créé
+automatiquement au démarrage de l'application (`init_db()` exécuté au lancement du serveur ou
+de la CLI) — aucune migration manuelle n'est nécessaire pour un premier déploiement.
+
+---
+
+## ⚡ Accélérer la connexion Garmin (contourner le rate-limit 429)
+
+La librairie `garminconnect` essaie plusieurs stratégies de connexion dans l'ordre
+(`mobile+cffi` → `mobile+requests` → `widget+cffi` → `portal+cffi` → `portal+requests`) et
+retombe sur la suivante en cas d'échec. Sur de nombreux réseaux, les deux premières
+(`mobile+cffi`, `mobile+requests`) sont **systématiquement rate-limitées (HTTP 429)** par
+Garmin avant que la connexion n'aboutisse via le widget SSO — ce qui ajoute plusieurs secondes
+d'attente à chaque connexion pour rien.
+
+La variable `GARMIN_SKIP_LOGIN_STRATEGIES` (dans `.env`) permet de sauter directement ces
+stratégies condamnées à échouer :
+
+```env
+GARMIN_SKIP_LOGIN_STRATEGIES=mobile+cffi,mobile+requests
+```
+
+C'est la valeur par défaut de l'application. Stratégies valides :
+`mobile+cffi`, `mobile+requests`, `widget+cffi`, `portal+cffi`, `portal+requests`.
+Laissez la variable vide pour réessayer toutes les stratégies (comportement le plus robuste,
+mais le plus lent en cas de rate-limit persistant).
 
 ---
 
@@ -115,7 +186,7 @@ garmin-to-strava/
 ├── app/
 │   ├── auth.py                # Gestion des sessions signées, hachage des mots de passe & dépendances FastAPI
 │   ├── config.py              # Configuration globale & gestion des chemins
-│   ├── database.py            # Modèles SQLite multi-utilisateurs (users, user_settings, activities)
+│   ├── database.py            # Accès PostgreSQL multi-utilisateurs (users, user_settings, activities) via pool psycopg2
 │   ├── garmin_client.py       # Client Garmin Connect par utilisateur (session persistante, export FIT)
 │   ├── strava_client.py       # Client Strava OAuth2 par utilisateur (refresh token, upload FIT)
 │   ├── sync_service.py        # Orchestration Garmin -> Strava par utilisateur
@@ -141,6 +212,11 @@ garmin-to-strava/
 
 ## 🧪 Exécution des Tests
 
+Les tests utilisent une base PostgreSQL dédiée (`garmin_strava_test` par défaut, voir
+[Configuration PostgreSQL](#-configuration-postgresql)), nettoyée automatiquement entre chaque
+test. Définissez au besoin `TEST_DATABASE_URL` pour pointer vers une autre instance :
+
 ```bash
+export TEST_DATABASE_URL=postgresql://garmin_strava_app:un_mot_de_passe_fort@localhost:5432/garmin_strava_test
 pytest
 ```

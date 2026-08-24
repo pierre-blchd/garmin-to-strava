@@ -1,93 +1,72 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<html lang="fr" class="h-full bg-neutral-100 text-neutral-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription - Garmin to Strava</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        strava: {
-                            DEFAULT: '#FC4C02',
-                            hover: '#E34402',
-                            dark: '#C83B00'
-                        },
-                        garmin: {
-                            DEFAULT: '#007CC3',
-                            hover: '#0066A2',
-                            dark: '#004F7E'
-                        }
+                        strava: { DEFAULT: '#FC4C02', hover: '#E34402' },
+                        garmin: { DEFAULT: '#007CC3' }
                     }
                 }
             }
         }
     </script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="h-full flex items-center justify-center p-4 font-sans antialiased selection:bg-strava selection:text-white">
+<body class="h-full flex items-center justify-center p-4 font-sans antialiased">
 
-    <div class="max-w-md w-full space-y-6">
-        
-        <!-- Logo & Header -->
-        <div class="text-center space-y-2">
-            <div class="inline-flex items-center space-x-2 bg-slate-900 p-2.5 rounded-2xl border border-slate-800 shadow-lg">
-                <span class="text-garmin font-black tracking-tight text-xl">GARMIN</span>
-                <i data-lucide="arrow-right" class="w-5 h-5 text-slate-400"></i>
-                <span class="text-strava font-black tracking-tight text-xl">STRAVA</span>
-            </div>
-            <h2 class="text-2xl font-bold text-slate-100 tracking-tight">Créer votre compte</h2>
-            <p class="text-xs text-slate-400">Synchronisez vos activités et poussez-les sur votre profil Strava</p>
+    <div class="max-w-sm w-full">
+
+        <div class="mb-8 text-center">
+            <p class="text-xs font-medium tracking-wide text-neutral-400 uppercase">Garmin → Strava</p>
+            <h1 class="mt-1 text-xl font-semibold text-neutral-900">Créer un compte</h1>
         </div>
 
-        <!-- Register Card -->
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+        <div class="bg-white border border-neutral-200 rounded-lg shadow-sm p-7">
             <form id="auth-register-form" onsubmit="handleAuthRegister(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nom ou Pseudo</label>
-                    <div class="relative">
-                        <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="reg-name" required class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-strava transition" placeholder="Alexandre">
-                    </div>
+                    <label class="block text-xs font-medium text-neutral-600 mb-1.5">Nom ou pseudo</label>
+                    <input type="text" id="reg-name" required autofocus
+                        class="w-full px-3 py-2 text-sm bg-white border border-neutral-300 rounded-md text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition"
+                        placeholder="Alexandre">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Adresse Email</label>
-                    <div class="relative">
-                        <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="email" id="reg-email" required class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-strava transition" placeholder="alexandre@exemple.com">
-                    </div>
+                    <label class="block text-xs font-medium text-neutral-600 mb-1.5">Email</label>
+                    <input type="email" id="reg-email" required
+                        class="w-full px-3 py-2 text-sm bg-white border border-neutral-300 rounded-md text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition"
+                        placeholder="vous@exemple.com">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Mot de passe</label>
-                    <div class="relative">
-                        <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="password" id="reg-password" minlength="6" required class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-strava transition" placeholder="Au moins 6 caractères">
-                    </div>
+                    <label class="block text-xs font-medium text-neutral-600 mb-1.5">Mot de passe</label>
+                    <input type="password" id="reg-password" minlength="6" required
+                        class="w-full px-3 py-2 text-sm bg-white border border-neutral-300 rounded-md text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition"
+                        placeholder="6 caractères minimum">
                 </div>
 
-                <button type="submit" id="btn-register-submit" class="w-full py-3 px-4 rounded-xl bg-strava hover:bg-strava-hover text-white font-semibold text-sm transition shadow-md active:scale-95 flex items-center justify-center space-x-2">
+                <button type="submit" id="btn-register-submit"
+                    class="w-full py-2.5 rounded-md bg-strava hover:bg-strava-hover text-white font-medium text-sm shadow-sm transition">
                     <span>Créer mon compte</span>
-                    <i data-lucide="user-plus" class="w-4 h-4"></i>
                 </button>
             </form>
-
-            <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
-                Vous avez déjà un compte ? 
-                <a href="/login" class="text-strava hover:underline font-semibold ml-1">Se connecter</a>
-            </div>
         </div>
+
+        <p class="mt-6 text-center text-xs text-neutral-500">
+            Vous avez déjà un compte ?
+            <a href="/login" class="text-neutral-900 font-medium hover:underline">Se connecter</a>
+        </p>
 
     </div>
 
-    <!-- Toast Notifications Container -->
-    <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 max-w-sm w-full"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-2 max-w-sm w-full"></div>
 
     <script src="/static/js/app.js"></script>
     <script>
@@ -101,8 +80,7 @@
             const btn = document.getElementById("btn-register-submit");
 
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Création du compte...</span>`;
-            lucide.createIcons();
+            btn.textContent = "Création...";
 
             try {
                 const resp = await fetch("/api/auth/register", {
@@ -118,16 +96,15 @@
                 const data = await resp.json();
                 if (!resp.ok) throw new Error(data.detail || "Erreur lors de la création du compte.");
 
-                showToast("Compte créé avec succès ! Bienvenue !", "success");
+                showToast("Compte créé", "success");
                 setTimeout(() => {
                     window.location.href = "/";
-                }, 400);
+                }, 300);
 
             } catch (err) {
                 showToast(err.message, "error");
                 btn.disabled = false;
-                btn.innerHTML = `<span>Créer mon compte</span><i data-lucide="user-plus" class="w-4 h-4"></i>`;
-                lucide.createIcons();
+                btn.textContent = "Créer mon compte";
             }
         }
     </script>

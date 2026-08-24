@@ -1,20 +1,6 @@
-import os
-import tempfile
-import pytest
 from unittest.mock import MagicMock, patch
 from app import database
 from app.strava_client import StravaService
-
-
-@pytest.fixture(autouse=True)
-def setup_temp_db(monkeypatch):
-    temp_dir = tempfile.mkdtemp()
-    temp_db_path = os.path.join(temp_dir, "test.db")
-    monkeypatch.setattr(database, "DB_PATH", temp_db_path)
-    database.init_db()
-    yield
-    if os.path.exists(temp_db_path):
-        os.remove(temp_db_path)
 
 
 def test_strava_authorization_url():

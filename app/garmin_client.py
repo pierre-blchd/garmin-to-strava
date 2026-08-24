@@ -59,7 +59,15 @@ class GarminService:
         try:
             token_dir_str = str(self.tokens_path)
             client = Garmin(email=email, password=password)
-            
+
+            # The mobile+cffi / mobile+requests strategies are consistently IP-rate-limited
+            # (429) for some networks/accounts before the login chain falls through to the
+            # widget SSO strategy that actually works. Skipping them straight to SSO shaves
+            # a few seconds off every login instead of burning them on two guaranteed 429s.
+            skip = {s.strip() for s in settings.GARMIN_SKIP_LOGIN_STRATEGIES.split(",") if s.strip()}
+            if skip and hasattr(client, "client") and hasattr(client.client, "skip_strategies"):
+                client.client.skip_strategies = skip
+
             # Pass token directory to login for automatic token storage
             try:
                 client.login(token_dir_str)

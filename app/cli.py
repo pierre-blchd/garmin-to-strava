@@ -5,7 +5,7 @@ from typing import Optional
 
 from app.database import (
     create_user,
-    get_db_connection,
+    get_db_cursor,
     get_user_by_email,
     init_db,
     list_activities,
@@ -16,8 +16,7 @@ from app.sync_service import get_user_sync_service
 
 
 def get_or_prompt_user():
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
+    with get_db_cursor() as cursor:
         cursor.execute("SELECT * FROM users ORDER BY id ASC LIMIT 1")
         row = cursor.fetchone()
         if row:
