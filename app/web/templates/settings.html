@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paramètres - Garmin to Strava</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        strava: {
+                            DEFAULT: '#FC4C02',
+                            hover: '#E34402',
+                            dark: '#C83B00'
+                        },
+                        garmin: {
+                            DEFAULT: '#007CC3',
+                            hover: '#0066A2',
+                            dark: '#004F7E'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="h-full flex flex-col font-sans antialiased selection:bg-strava selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-2 text-slate-400 hover:text-slate-200 transition text-sm font-medium">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span>Retour au tableau de bord</span>
+                </a>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-2 bg-slate-800/60 py-1 px-2.5 rounded-xl border border-slate-700/50 text-xs text-slate-200">
+                    <i data-lucide="user" class="w-3.5 h-3.5 text-strava"></i>
+                    <span>{{ user.display_name or user.email }}</span>
+                </div>
+                <button onclick="handleLogout()" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 transition border border-slate-700/80 hover:border-rose-500/40" title="Se déconnecter">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- 1. Garmin Connect Configuration Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 rounded-xl bg-garmin/10 text-garmin border border-garmin/20">
+                        <i data-lucide="watch" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-100">Votre Compte Garmin Connect</h2>
+                        <p class="text-xs text-slate-400">Vos identifiants Garmin pour récupérer vos activités personnelles et fichiers FIT</p>
+                    </div>
+                </div>
+
+                <!-- Live Status Pill -->
+                <div id="garmin-settings-status" class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-800 border border-slate-700 text-slate-300">
+                    Vérification...
+                </div>
+            </div>
+
+            <!-- Login / Account Management View -->
+            <div id="garmin-logged-in-view" class="hidden space-y-4">
+                <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+                        <div>
+                            <p class="text-sm font-semibold">Connecté à Garmin Connect</p>
+                            <p id="garmin-connected-email" class="text-xs text-emerald-400/80">email@garmin.com</p>
+                        </div>
+                    </div>
+                    <button onclick="handleGarminLogout()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 hover:border-rose-500/40 transition">
+                        Se déconnecter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login Form (if not logged in) -->
+            <form id="garmin-settings-form" onsubmit="handleGarminSettingsLogin(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Email Garmin</label>
+                        <input type="email" id="settings-garmin-email" required class="w-full px-3.5 py-2 text-sm bg-slate-800/90 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-garmin" placeholder="votre.email@domaine.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Mot de passe</label>
+                        <input type="password" id="settings-garmin-password" required class="w-full px-3.5 py-2 text-sm bg-slate-800/90 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-garmin" placeholder="••••••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <p class="text-xs text-slate-400">La session est sauvegardée localement dans votre espace sécurisé.</p>
+                    <button type="submit" id="btn-save-garmin" class="px-5 py-2.5 text-sm font-semibold rounded-xl bg-garmin hover:bg-garmin-hover text-white transition shadow-sm flex items-center space-x-2">
+                        <span>Se connecter à Garmin</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. Strava Connection Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 rounded-xl bg-strava/10 text-strava border border-strava/20">
+                        <i data-lucide="share-2" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-100">Votre Compte Strava</h2>
+                        <p class="text-xs text-slate-400">Autorisation OAuth2 pour envoyer automatiquement vos activités sur votre profil personnel</p>
+                    </div>
+                </div>
+
+                <!-- Live Status Pill -->
+                <div id="strava-settings-status" class="px-3.5 py-1 rounded-full text-xs font-semibold bg-slate-800 border border-slate-700 text-slate-300">
+                    Vérification...
+                </div>
+            </div>
+
+            <!-- Strava OAuth Connect Button & Current User status -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div id="strava-connected-view" class="hidden flex items-center space-x-3 text-emerald-400">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <div>
+                        <p class="text-sm font-semibold">Compte Strava connecté</p>
+                        <p id="strava-athlete-name-display" class="text-xs text-emerald-400/80">Athlète : ...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
+                    <button id="btn-strava-disconnect" onclick="handleStravaDisconnect()" class="hidden px-4 py-2.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 transition">
+                        Déconnecter Strava
+                    </button>
+
+                    <button id="btn-strava-oauth" onclick="handleStravaOAuthConnect()" class="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-2.5 text-sm font-semibold rounded-xl bg-strava hover:bg-strava-hover text-white transition shadow-md">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        <span>Autoriser & Connecter avec Strava</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 max-w-sm w-full"></div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
