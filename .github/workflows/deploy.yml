@@ -1,0 +1,38 @@
+name: Déploiement VPS via SSH
+
+# Le workflow se déclenche à chaque push sur la branche main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Déploiement sur le serveur
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Connexion SSH et exécution des commandes
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          # C'est ici que vous définissez ce que le VPS doit faire une fois connecté
+          script: |
+            echo "Début du déploiement..."
+            
+            # On se place dans le dossier du projet
+            cd /var/www/garmin-to-strava
+            
+            # On récupère la dernière version du code depuis GitHub
+            git pull origin main
+            
+            source .venv/bin/activate
+            
+            pip install -r requirements.txt
+            
+            python main.py
+            
+            echo "Déploiement terminé avec succès !"
